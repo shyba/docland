@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 use actix_multipart::Multipart;
 use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer};
 use async_std::prelude::*;
