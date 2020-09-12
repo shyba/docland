@@ -1,4 +1,3 @@
-
 use actix_multipart::Multipart;
 use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer};
 use async_std::prelude::*;
@@ -7,7 +6,6 @@ use futures::{StreamExt, TryStreamExt};
 use ring::digest::{Context, SHA256};
 use uuid::Uuid;
 
-#[derive(Clone)]
 pub struct Storage {
     path: String,
 }
