@@ -31,7 +31,7 @@ async fn main() -> std::io::Result<()> {
 
     let ip = "0.0.0.0:3000";
 
-    let storage = Box::new(storage::storage::Storage::new("./tmp/".to_string()));
+    let storage = Box::new(storage::Storage::new("./tmp/".to_string()));
     let storage = &*Box::leak(storage);
     HttpServer::new(move || {
         App::new().wrap(middleware::Logger::default()).service(
