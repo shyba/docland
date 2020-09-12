@@ -1,12 +1,17 @@
+#![allow(unused_imports)]
+
 use actix_multipart::Multipart;
 use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer};
 use async_std::prelude::*;
+use async_std::sync::Arc;
 use data_encoding::HEXUPPER;
 use futures::{StreamExt, TryStreamExt};
+use once_cell::sync::Lazy;
 use ring::digest::{Context, SHA256};
-use async_std::sync::Arc;
 use uuid::Uuid;
+
 mod storage;
+use storage::Storage;
 
 fn index() -> HttpResponse {
     let html = r#"<html>
@@ -22,6 +27,8 @@ fn index() -> HttpResponse {
     HttpResponse::Ok().body(html)
 }
 
+static STORAGE: Lazy<Storage> = Lazy::new(|| Storage::new("./tmp/".to_string()));
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
@@ -29,12 +36,11 @@ async fn main() -> std::io::Result<()> {
 
     let ip = "0.0.0.0:3000";
 
-    let storage = Arc::new(storage::storage::Storage::new("./tmp/".to_string()));
     HttpServer::new(|| {
         App::new().wrap(middleware::Logger::default()).service(
             web::resource("/")
                 .route(web::get().to(index))
-                .route(web::post().to(|field| storage.upload_file(field))),
+                .route(web::post().to(|field| STORAGE.upload_file(field))),
         )
     })
     .bind(ip)?
