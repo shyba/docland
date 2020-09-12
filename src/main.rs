@@ -1,10 +1,10 @@
 use actix_multipart::Multipart;
 use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer};
 use async_std::prelude::*;
+use async_std::sync::Arc;
 use data_encoding::HEXUPPER;
 use futures::{StreamExt, TryStreamExt};
 use ring::digest::{Context, SHA256};
-use async_std::sync::Arc;
 use uuid::Uuid;
 mod storage;
 
@@ -29,12 +29,13 @@ async fn main() -> std::io::Result<()> {
 
     let ip = "0.0.0.0:3000";
 
-    let storage = Arc::new(storage::storage::Storage::new("./tmp/".to_string()));
-    HttpServer::new(|| {
+    let storage = Box::new(storage::storage::Storage::new("./tmp/".to_string()));
+    let storage = &*Box::leak(storage);
+    HttpServer::new(move || {
         App::new().wrap(middleware::Logger::default()).service(
             web::resource("/")
                 .route(web::get().to(index))
-                .route(web::post().to(|field| storage.upload_file(field))),
+                .route(web::post().to(move |field| storage.upload_file(field))),
         )
     })
     .bind(ip)?
