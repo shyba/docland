@@ -32,7 +32,7 @@ static STORAGE: Lazy<Storage> = Lazy::new(|| Storage::from_env());
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
-    async_std::fs::create_dir_all("./tmp").await?;
+    STORAGE.setup();
 
     let ip = "0.0.0.0:3000";
 

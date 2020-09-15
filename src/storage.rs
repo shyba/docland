@@ -24,6 +24,10 @@ impl Storage {
         Storage::new(path)
     }
 
+    pub fn setup(&self) {
+        std::fs::create_dir_all(self.path.clone()).unwrap();
+    }
+
     pub async fn upload_file(&self, mut payload: Multipart) -> Result<HttpResponse, Error> {
         while let Ok(Some(mut field)) = payload.try_next().await {
             let filename: String = Uuid::new_v4().to_string();
