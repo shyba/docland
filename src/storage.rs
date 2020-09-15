@@ -1,5 +1,6 @@
+use middleware::Logger;
 use actix_multipart::Multipart;
-use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer};
+use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer, http};
 use async_std::prelude::*;
 use data_encoding::HEXUPPER;
 use futures::{StreamExt, TryStreamExt};
@@ -32,6 +33,7 @@ impl Storage {
         while let Ok(Some(mut field)) = payload.try_next().await {
             let filename: String = Uuid::new_v4().to_string();
             let filepath = format!("{}{}", self.path, sanitize_filename::sanitize(filename));
+            println!("Processing: {}", field.content_disposition().unwrap().get_filename().unwrap());
             let mut f = async_std::fs::File::create(&filepath).await?;
 
             let mut context = Context::new(&SHA256);
@@ -43,12 +45,13 @@ impl Storage {
             let hash = HEXUPPER.encode(context.finish().as_ref());
             let final_path = format!("{}{}", self.path, hash);
             if async_std::path::Path::new(&final_path).exists().await {
-                println!("exists!! {}", final_path);
+                println!("exists: {}", final_path);
                 async_std::fs::remove_file(filepath).await?;
             } else {
+                println!("new: {}", final_path.clone());
                 async_std::fs::rename(filepath, final_path).await?;
             }
         }
-        Ok(HttpResponse::Ok().into())
+        Ok(HttpResponse::Found().header(http::header::LOCATION, "/").finish())
     }
 }
