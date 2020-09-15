@@ -27,7 +27,7 @@ fn index() -> HttpResponse {
     HttpResponse::Ok().body(html)
 }
 
-static STORAGE: Lazy<Storage> = Lazy::new(|| Storage::new("./tmp/".to_string()));
+static STORAGE: Lazy<Storage> = Lazy::new(|| Storage::from_env());
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
