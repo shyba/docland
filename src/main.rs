@@ -1,14 +1,6 @@
-#![allow(unused_imports)]
-
-use actix_multipart::Multipart;
-use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer};
-use async_std::prelude::*;
-use async_std::sync::Arc;
-use data_encoding::HEXUPPER;
-use futures::{StreamExt, TryStreamExt};
+#![warn(clippy::all)]
+use actix_web::{middleware, web, App, HttpResponse, HttpServer};
 use once_cell::sync::Lazy;
-use ring::digest::{Context, SHA256};
-use uuid::Uuid;
 
 mod storage;
 use storage::Storage;
@@ -27,7 +19,7 @@ fn index() -> HttpResponse {
     HttpResponse::Ok().body(html)
 }
 
-static STORAGE: Lazy<Storage> = Lazy::new(|| Storage::from_env());
+static STORAGE: Lazy<Storage> = Lazy::new(Storage::from_env);
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

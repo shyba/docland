@@ -1,6 +1,5 @@
-use middleware::Logger;
 use actix_multipart::Multipart;
-use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer, http};
+use actix_web::{Error, HttpResponse, http};
 use async_std::prelude::*;
 use data_encoding::HEXUPPER;
 use futures::{StreamExt, TryStreamExt};
@@ -12,17 +11,11 @@ pub struct Storage {
 }
 
 impl Storage {
-    pub fn new(path: String) -> Storage {
-        Storage { path: path }
-    }
-
     pub fn from_env() -> Storage {
-        let path;
-        match std::env::var("STORAGE_DIR") {
-            Ok(value) => path = value,
-            Err(_) => path = "./tmp/".to_string()
-        }
-        Storage::new(path)
+	Storage { path: match std::env::var("STORAGE_DIR") {
+	    Ok(value) => value,
+	    Err(_) => "./tmp/".to_string()
+	}}
     }
 
     pub fn setup(&self) {
@@ -31,8 +24,7 @@ impl Storage {
 
     pub async fn upload_file(&self, mut payload: Multipart) -> Result<HttpResponse, Error> {
         while let Ok(Some(mut field)) = payload.try_next().await {
-            let filename: String = Uuid::new_v4().to_string();
-            let filepath = format!("{}{}", self.path, sanitize_filename::sanitize(filename));
+            let filepath = format!("{}{}.temp", self.path, Uuid::new_v4());
             println!("Processing: {}", field.content_disposition().unwrap().get_filename().unwrap());
             let mut f = async_std::fs::File::create(&filepath).await?;
 
